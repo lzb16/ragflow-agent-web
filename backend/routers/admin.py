@@ -1,17 +1,11 @@
-from typing import Optional, List
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
 from sqlmodel import select
 from backend.deps import SessionDep, AdminDep
 from backend.models import Agent, AgentStatus
-from backend.routers.agents import AgentResponse, _to_response
+from backend.routers.agents import AgentResponse, AgentListResponse, _to_response
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
-
-
-class AgentListResponse(BaseModel):
-    items: List[AgentResponse]
-    total: int
 
 
 @router.get("/agents", response_model=AgentListResponse)
