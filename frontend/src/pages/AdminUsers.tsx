@@ -139,7 +139,7 @@ export default function AdminUsers() {
                         {resetingId === user.id && (
                           <div className="flex items-center gap-2 mt-1">
                             <input
-                              type="text"
+                              type="password"
                               value={resetPassword}
                               onChange={e => setResetPassword(e.target.value)}
                               placeholder="新密码（至少 8 位）"
