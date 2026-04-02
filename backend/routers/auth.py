@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlmodel import select
 from backend.deps import SessionDep, CurrentUserDep
 from backend.models import User
@@ -62,9 +62,9 @@ def register(req: RegisterRequest, session: SessionDep):
 
 @router.post("/login", response_model=LoginResponse)
 def login(req: LoginRequest, session: SessionDep):
-    user = session.exec(select(User).where(User.email == req.login)).first()
-    if not user:
-        user = session.exec(select(User).where(User.username == req.login)).first()
+    user = session.exec(
+        select(User).where((User.email == req.login) | (User.username == req.login))
+    ).first()
     if not user or not verify_password(req.password, user.password_hash):
         raise HTTPException(status_code=401, detail="用户名/邮箱或密码错误")
 
@@ -73,7 +73,7 @@ def login(req: LoginRequest, session: SessionDep):
 
 
 class ChangePasswordRequest(BaseModel):
-    current_password: str
+    current_password: str = Field(min_length=1)
     new_password: str
 
     @field_validator('new_password')
