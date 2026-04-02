@@ -29,12 +29,21 @@ def session_fixture(engine):
 def client_fixture(engine):
     from backend.main import app
     from backend.deps import get_session
+    from backend import database
+
+    # Override the database engine for testing
+    database.engine = engine
 
     def get_session_override():
         with Session(engine) as session:
             yield session
 
     app.dependency_overrides[get_session] = get_session_override
+
+    # Trigger startup events manually
+    for callback in app.router.on_startup:
+        callback()
+
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
