@@ -28,6 +28,7 @@ async function request<T>(
     const err = await resp.json().catch(() => ({ detail: resp.statusText }))
     throw new Error(err.detail || 'Request failed')
   }
+  if (resp.status === 204) return undefined as unknown as T
   return resp.json()
 }
 
@@ -39,7 +40,7 @@ export const api = {
     }),
 
   login: (email: string, password: string) =>
-    request<{ token: string; is_admin: boolean }>('/api/auth/login', {
+    request<{ token: string; is_admin: boolean; user_id: number }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
@@ -79,6 +80,15 @@ export const api = {
       body: JSON.stringify({ content }),
     }),
 
+  updateComment: (agentId: number, commentId: number, content: string) =>
+    request<import('./types').Comment>(`/api/agents/${agentId}/comments/${commentId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ content }),
+    }),
+
+  deleteComment: (agentId: number, commentId: number) =>
+    request<void>(`/api/agents/${agentId}/comments/${commentId}`, { method: 'DELETE' }),
+
   adminListAgents: (status?: string) => {
     const params = status ? `?status=${status}` : ''
     return request<{ items: import('./types').Agent[]; total: number }>(`/api/admin/agents${params}`)
@@ -89,4 +99,16 @@ export const api = {
 
   adminReject: (id: number) =>
     request<import('./types').Agent>(`/api/admin/agents/${id}/reject`, { method: 'POST' }),
+
+  adminDeleteAgent: (id: number) =>
+    request<void>(`/api/admin/agents/${id}`, { method: 'DELETE' }),
+
+  adminListUsers: () =>
+    request<{ items: import('./types').AdminUser[]; total: number }>('/api/admin/users'),
+
+  adminSetAdmin: (userId: number, isAdmin: boolean) =>
+    request<import('./types').AdminUser>(`/api/admin/users/${userId}/set-admin`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_admin: isAdmin }),
+    }),
 }

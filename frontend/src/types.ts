@@ -17,6 +17,7 @@ export interface Comment {
   content: string
   agent_id: number
   user_id: number
+  username: string
   created_at: string
 }
 
@@ -35,4 +36,12 @@ export interface ParseResponse {
 export interface AuthUser {
   token: string
   is_admin: boolean
+}
+
+export interface AdminUser {
+  id: number
+  username: string
+  email: string
+  is_admin: boolean
+  created_at: string
 }
