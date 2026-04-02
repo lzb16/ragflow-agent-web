@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from sqlmodel import select
 from backend.deps import SessionDep
 from backend.models import User
@@ -12,6 +12,13 @@ class RegisterRequest(BaseModel):
     username: str
     email: EmailStr
     password: str
+
+    @field_validator('password')
+    @classmethod
+    def password_min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError('密码至少 8 位')
+        return v
 
 
 class LoginRequest(BaseModel):
