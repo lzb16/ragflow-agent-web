@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Bot, Plus, Settings } from 'lucide-react'
+import { Bot, Plus, Settings, KeyRound } from 'lucide-react'
 
 export default function Navbar() {
   const token = localStorage.getItem('token')
@@ -29,6 +29,11 @@ export default function Navbar() {
                   管理
                 </Link>
               )}
+              <Link to="/change-password"
+                className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                <KeyRound size={14} />
+                改密码
+              </Link>
               <Link to="/submit"
                 className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
                 <Plus size={15} strokeWidth={2.5} />

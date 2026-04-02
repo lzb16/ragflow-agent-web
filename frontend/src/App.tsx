@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Admin from './pages/Admin'
 import AdminUsers from './pages/AdminUsers'
+import ChangePassword from './pages/ChangePassword'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/submit" element={<ProtectedRoute><Submit /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute adminOnly><AdminUsers /></ProtectedRoute>} />
+        <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
       </Routes>
     </div>
   )
