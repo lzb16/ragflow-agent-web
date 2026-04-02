@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+from backend.auth import hash_password
 from sqlmodel import select
 from backend.deps import SessionDep, AdminDep
 from backend.models import Agent, AgentStatus, User
@@ -119,3 +120,24 @@ def set_admin(
         is_admin=user.is_admin,
         created_at=user.created_at.isoformat(),
     )
+
+
+class ResetPasswordRequest(BaseModel):
+    new_password: str
+
+    @field_validator('new_password')
+    @classmethod
+    def min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError('密码至少 8 位')
+        return v
+
+
+@router.post("/users/{user_id}/reset-password", status_code=204)
+def reset_user_password(user_id: int, req: ResetPasswordRequest, _: AdminDep, session: SessionDep):
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    user.password_hash = hash_password(req.new_password)
+    session.add(user)
+    session.commit()

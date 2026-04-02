@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ShieldCheck, ShieldOff, ClipboardList, Users } from 'lucide-react'
+import { ArrowLeft, ShieldCheck, ShieldOff, ClipboardList, Users, KeyRound } from 'lucide-react'
 import { api } from '../api'
 import type { AdminUser } from '../types'
 import Navbar from '../components/Navbar'
@@ -9,6 +9,9 @@ export default function AdminUsers() {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<number | null>(null)
+  const [resetingId, setResetingId] = useState<number | null>(null)
+  const [resetPassword, setResetPassword] = useState('')
+  const [resetError, setResetError] = useState('')
   const storedUserId = localStorage.getItem('user_id')
   const currentUserId = storedUserId ? Number(storedUserId) : null
 
@@ -25,6 +28,21 @@ export default function AdminUsers() {
       setUsers(prev => prev.map(u => u.id === userId ? updated : u))
     } finally {
       setUpdating(null)
+    }
+  }
+
+  async function handleResetPassword(userId: number) {
+    if (resetPassword.length < 8) {
+      setResetError('密码至少 8 位')
+      return
+    }
+    setResetError('')
+    try {
+      await api.adminResetPassword(userId, resetPassword)
+      setResetingId(null)
+      setResetPassword('')
+    } catch (err: any) {
+      setResetError(err.message)
     }
   }
 
@@ -90,25 +108,57 @@ export default function AdminUsers() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {user.id === currentUserId ? (
-                        <span className="text-xs text-slate-300">（当前账号）</span>
-                      ) : user.is_admin ? (
-                        <button
-                          onClick={() => handleSetAdmin(user.id, false)}
-                          disabled={updating === user.id}
-                          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                          <ShieldOff size={12} />
-                          撤销管理员
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleSetAdmin(user.id, true)}
-                          disabled={updating === user.id}
-                          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                          <ShieldCheck size={12} />
-                          设为管理员
-                        </button>
-                      )}
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
+                          {user.id === currentUserId ? (
+                            <span className="text-xs text-slate-300">（当前账号）</span>
+                          ) : user.is_admin ? (
+                            <button
+                              onClick={() => handleSetAdmin(user.id, false)}
+                              disabled={updating === user.id}
+                              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                              <ShieldOff size={12} />
+                              撤销管理员
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleSetAdmin(user.id, true)}
+                              disabled={updating === user.id}
+                              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                              <ShieldCheck size={12} />
+                              设为管理员
+                            </button>
+                          )}
+                          <button
+                            onClick={() => { setResetingId(user.id); setResetPassword(''); setResetError('') }}
+                            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer">
+                            <KeyRound size={12} />
+                            重置密码
+                          </button>
+                        </div>
+                        {resetingId === user.id && (
+                          <div className="flex items-center gap-2 mt-1">
+                            <input
+                              type="text"
+                              value={resetPassword}
+                              onChange={e => setResetPassword(e.target.value)}
+                              placeholder="新密码（至少 8 位）"
+                              className="border border-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
+                            />
+                            <button
+                              onClick={() => handleResetPassword(user.id)}
+                              className="text-xs px-2 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors cursor-pointer">
+                              确认
+                            </button>
+                            <button
+                              onClick={() => setResetingId(null)}
+                              className="text-xs px-2 py-1 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer">
+                              取消
+                            </button>
+                            {resetError && <span className="text-xs text-red-500">{resetError}</span>}
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

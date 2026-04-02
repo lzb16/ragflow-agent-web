@@ -117,4 +117,10 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ is_admin: isAdmin }),
     }),
+
+  adminResetPassword: (userId: number, newPassword: string) =>
+    request<void>(`/api/admin/users/${userId}/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify({ new_password: newPassword }),
+    }),
 }
