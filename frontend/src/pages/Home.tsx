@@ -75,7 +75,7 @@ export default function Home() {
                 "<span className="font-medium text-slate-700">{query}</span>"相关的智能体
               </p>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {agents.map(agent => <AgentCard key={agent.id} agent={agent} />)}
             </div>
 
