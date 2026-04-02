@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from sqlmodel import Field, SQLModel, UniqueConstraint
@@ -16,7 +16,7 @@ class User(SQLModel, table=True):
     email: str = Field(unique=True, index=True)
     password_hash: str
     is_admin: bool = Field(default=False)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class Agent(SQLModel, table=True):
@@ -30,7 +30,7 @@ class Agent(SQLModel, table=True):
     status: AgentStatus = Field(default=AgentStatus.pending)
     submitter_id: int = Field(foreign_key="user.id")
     likes_count: int = Field(default=0)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class Comment(SQLModel, table=True):
@@ -38,7 +38,7 @@ class Comment(SQLModel, table=True):
     content: str
     agent_id: int = Field(foreign_key="agent.id")
     user_id: int = Field(foreign_key="user.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class Like(SQLModel, table=True):
