@@ -29,6 +29,7 @@ class UserResponse(BaseModel):
 class LoginResponse(BaseModel):
     token: str
     is_admin: bool
+    user_id: int
 
 
 @router.post("/register", response_model=UserResponse)
@@ -59,4 +60,4 @@ def login(req: LoginRequest, session: SessionDep):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     token = create_token({"sub": str(user.id), "is_admin": user.is_admin})
-    return LoginResponse(token=token, is_admin=user.is_admin)
+    return LoginResponse(token=token, is_admin=user.is_admin, user_id=user.id)

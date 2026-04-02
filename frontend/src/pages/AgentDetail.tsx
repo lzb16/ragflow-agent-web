@@ -15,6 +15,9 @@ export default function AgentDetail() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
+  const currentUserId = localStorage.getItem('user_id') ? Number(localStorage.getItem('user_id')) : null
+  const isAdmin = localStorage.getItem('is_admin') === 'true'
+
   useEffect(() => {
     if (!id) return
     const agentId = Number(id)
@@ -115,7 +118,13 @@ export default function AgentDetail() {
           <div className="mb-6">
             <CommentForm agentId={agent.id} onCommentAdded={c => setComments(prev => [...prev, c])} />
           </div>
-          <CommentList comments={comments} />
+          <CommentList
+            comments={comments}
+            currentUserId={currentUserId}
+            isAdmin={isAdmin}
+            onCommentUpdated={updated => setComments(prev => prev.map(c => c.id === updated.id ? updated : c))}
+            onCommentDeleted={commentId => setComments(prev => prev.filter(c => c.id !== commentId))}
+          />
         </div>
       </main>
     </div>

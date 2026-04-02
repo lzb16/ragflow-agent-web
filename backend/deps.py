@@ -43,3 +43,18 @@ def get_current_admin_id(
 
 CurrentUserDep = Annotated[int, Depends(get_current_user_id)]
 AdminDep = Annotated[int, Depends(get_current_admin_id)]
+
+
+def get_current_user_full(
+    user_id: Annotated[int, Depends(get_current_user_id)],
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(bearer_scheme)],
+) -> tuple[int, bool]:
+    try:
+        payload = decode_token(credentials.credentials)
+        is_admin = bool(payload.get("is_admin", False))
+        return user_id, is_admin
+    except Exception:
+        return user_id, False
+
+
+CurrentUserFullDep = Annotated[tuple[int, bool], Depends(get_current_user_full)]

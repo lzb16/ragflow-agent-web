@@ -20,6 +20,7 @@ export default function Login() {
       const data = await api.login(email, password)
       localStorage.setItem('token', data.token)
       localStorage.setItem('is_admin', String(data.is_admin))
+      localStorage.setItem('user_id', String(data.user_id))
       const redirect = params.get('redirect') || '/'
       navigate(redirect, { replace: true })
     } catch (err: any) {
