@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { Sparkles } from 'lucide-react'
 import { api } from '../api'
 import type { Agent } from '../types'
 import AgentCard from '../components/AgentCard'
 import SearchBar from '../components/SearchBar'
+import Navbar from '../components/Navbar'
+
+const pageSize = 12
 
 export default function Home() {
   const [agents, setAgents] = useState<Agent[]>([])
@@ -11,9 +15,6 @@ export default function Home() {
   const [page, setPage] = useState(1)
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(true)
-  const token = localStorage.getItem('token')
-  const isAdmin = localStorage.getItem('is_admin') === 'true'
-  const pageSize = 12
 
   useEffect(() => {
     setLoading(true)
@@ -30,64 +31,83 @@ export default function Home() {
   const totalPages = Math.ceil(total / pageSize)
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">RAGflow 智能体广场</h1>
-        <div className="flex gap-2">
-          {token ? (
-            <>
-              <Link to="/submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600">
-                + 分享智能体
-              </Link>
-              {isAdmin && (
-                <Link to="/admin"
-                  className="bg-gray-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-800">
-                  管理
-                </Link>
-              )}
-              <button
-                onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('is_admin'); window.location.reload() }}
-                className="text-sm text-gray-500 hover:text-gray-700 px-2">
-                退出
-              </button>
-            </>
-          ) : (
-            <Link to="/login"
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600">
-              登录
-            </Link>
-          )}
-        </div>
-      </div>
+    <div className="min-h-screen bg-slate-50">
+      <Navbar />
 
-      <div className="mb-6">
-        <SearchBar onSearch={handleSearch} initialValue={query} />
-      </div>
-
-      {loading ? (
-        <div className="text-center py-16 text-gray-400">加载中...</div>
-      ) : agents.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          {query ? `没有找到与"${query}"相关的智能体` : '还没有智能体，快来分享第一个吧！'}
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {agents.map(agent => <AgentCard key={agent.id} agent={agent} />)}
+      {/* Hero */}
+      <section className="bg-white border-b border-slate-200 py-12">
+        <div className="max-w-2xl mx-auto px-4 text-center">
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 text-xs font-medium px-3 py-1.5 rounded-full mb-4">
+            <Sparkles size={12} />
+            社区共建 · 开放共享
           </div>
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-8">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                <button key={p} onClick={() => setPage(p)}
-                  className={`w-8 h-8 rounded-full text-sm ${p === page ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 border hover:bg-gray-50'}`}>
-                  {p}
-                </button>
-              ))}
+          <h1 className="text-3xl font-bold text-slate-800 mb-3 font-display">
+            发现优质 RAGflow 智能体
+          </h1>
+          <p className="text-slate-500 mb-8 text-[15px]">
+            探索社区分享的智能体，一键使用，提升工作效率
+          </p>
+          <SearchBar onSearch={handleSearch} initialValue={query} />
+        </div>
+      </section>
+
+      {/* Content */}
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        {loading ? (
+          <div className="text-center py-20 text-slate-400 text-sm">加载中...</div>
+        ) : agents.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-slate-400 text-sm">
+              {query ? `没有找到与"${query}"相关的智能体` : '还没有智能体，快来分享第一个吧！'}
+            </p>
+            {!query && (
+              <Link to="/submit"
+                className="mt-4 inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 text-sm font-medium">
+                分享第一个智能体 →
+              </Link>
+            )}
+          </div>
+        ) : (
+          <>
+            {query && (
+              <p className="text-sm text-slate-500 mb-4">
+                找到 <span className="font-medium text-slate-700">{total}</span> 个与
+                "<span className="font-medium text-slate-700">{query}</span>"相关的智能体
+              </p>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {agents.map(agent => <AgentCard key={agent.id} agent={agent} />)}
             </div>
-          )}
-        </>
-      )}
+
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-1.5 mt-10">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                  上一页
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button key={p} onClick={() => setPage(p)}
+                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                      p === page
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-slate-200 text-slate-600 hover:bg-slate-100'
+                    }`}>
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">
+                  下一页
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </main>
     </div>
   )
 }

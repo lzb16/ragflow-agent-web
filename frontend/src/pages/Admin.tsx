@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { Check, X, ArrowLeft } from 'lucide-react'
 import { api } from '../api'
 import type { Agent } from '../types'
+import Navbar from '../components/Navbar'
+
+type FilterStatus = 'pending' | 'approved' | 'rejected'
+
+const filterLabels: Record<FilterStatus, string> = {
+  pending: '待审核',
+  approved: '已通过',
+  rejected: '已拒绝',
+}
 
 export default function Admin() {
   const [agents, setAgents] = useState<Agent[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected'>('pending')
+  const [filter, setFilter] = useState<FilterStatus>('pending')
 
   useEffect(() => {
     setLoading(true)
@@ -26,68 +36,100 @@ export default function Admin() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">管理后台</h1>
-        <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">← 返回首页</Link>
-      </div>
+    <div className="min-h-screen bg-slate-50">
+      <Navbar />
 
-      <div className="flex gap-2 mb-6">
-        {(['pending', 'approved', 'rejected'] as const).map(s => (
-          <button key={s} onClick={() => setFilter(s)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === s ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-            {s === 'pending' ? '待审核' : s === 'approved' ? '已通过' : '已拒绝'}
-          </button>
-        ))}
-      </div>
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 font-display">管理后台</h1>
+            <p className="text-slate-500 text-sm mt-1">审核用户提交的智能体</p>
+          </div>
+          <Link to="/"
+            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors">
+            <ArrowLeft size={14} />
+            返回首页
+          </Link>
+        </div>
 
-      {loading ? (
-        <div className="text-center py-12 text-gray-400">加载中...</div>
-      ) : agents.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">暂无数据</div>
-      ) : (
-        <div className="space-y-3">
-          {agents.map(agent => (
-            <div key={agent.id} className="bg-white rounded-xl shadow p-4 flex items-center gap-4">
-              {agent.avatar_path ? (
-                <img src={`/${agent.avatar_path}`} alt={agent.name}
-                  className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold flex-shrink-0">
-                  {agent.name[0]}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{agent.name}</p>
-                <a href={agent.url} target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-blue-400 hover:underline truncate block">{agent.url}</a>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  提交于 {new Date(agent.created_at).toLocaleString('zh-CN')}
-                </p>
-              </div>
-              <div className="flex gap-2 flex-shrink-0">
-                {agent.status === 'pending' && (
-                  <>
-                    <button onClick={() => handleApprove(agent.id)}
-                      className="bg-green-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-green-600">
-                      通过
-                    </button>
-                    <button onClick={() => handleReject(agent.id)}
-                      className="bg-red-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-red-600">
-                      拒绝
-                    </button>
-                  </>
-                )}
-                {agent.status !== 'pending' && (
-                  <span className={`text-sm px-3 py-1.5 rounded-lg ${agent.status === 'approved' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                    {agent.status === 'approved' ? '已通过' : '已拒绝'}
-                  </span>
-                )}
-              </div>
-            </div>
+        {/* Filter Tabs */}
+        <div className="flex gap-1.5 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+          {(Object.keys(filterLabels) as FilterStatus[]).map(s => (
+            <button
+              key={s}
+              onClick={() => setFilter(s)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                filter === s
+                  ? 'bg-white text-slate-800 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}>
+              {filterLabels[s]}
+            </button>
           ))}
         </div>
-      )}
+
+        {loading ? (
+          <div className="text-center py-16 text-slate-400 text-sm">加载中...</div>
+        ) : agents.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-slate-400 text-sm">暂无{filterLabels[filter]}的智能体</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {agents.map(agent => (
+              <div key={agent.id}
+                className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-4">
+                {agent.avatar_path ? (
+                  <img src={`/${agent.avatar_path}`} alt={agent.name}
+                    className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 font-bold font-display flex-shrink-0">
+                    {agent.name[0]}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-slate-800 truncate">{agent.name}</p>
+                  <a href={agent.url} target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-blue-500 hover:underline truncate block mt-0.5">{agent.url}</a>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    提交于 {new Date(agent.created_at).toLocaleString('zh-CN')}
+                  </p>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  {agent.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleApprove(agent.id)}
+                        className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors cursor-pointer">
+                        <Check size={14} strokeWidth={2.5} />
+                        通过
+                      </button>
+                      <button
+                        onClick={() => handleReject(agent.id)}
+                        className="flex items-center gap-1.5 bg-red-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-600 transition-colors cursor-pointer">
+                        <X size={14} strokeWidth={2.5} />
+                        拒绝
+                      </button>
+                    </>
+                  )}
+                  {agent.status !== 'pending' && (
+                    <span className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg font-medium ${
+                      agent.status === 'approved'
+                        ? 'bg-green-50 text-green-600 border border-green-200'
+                        : 'bg-red-50 text-red-600 border border-red-200'
+                    }`}>
+                      {agent.status === 'approved'
+                        ? <><Check size={13} strokeWidth={2.5} />已通过</>
+                        : <><X size={13} strokeWidth={2.5} />已拒绝</>
+                      }
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
     </div>
   )
 }
