@@ -37,7 +37,7 @@ def get_current_admin_id(
         if not payload.get("is_admin"):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin only")
         return user_id
-    except (JWTError, KeyError):
+    except (JWTError, KeyError, ValueError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 
