@@ -20,6 +20,7 @@ def seed_admin():
         return
 
     from sqlmodel import Session, select
+    from sqlalchemy.exc import IntegrityError
     from backend import database
     from backend.models import User
     from backend.auth import hash_password
@@ -35,7 +36,10 @@ def seed_admin():
             is_admin=True,
         )
         session.add(user)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError:
+            session.rollback()
 
 
 @app.on_event("startup")
