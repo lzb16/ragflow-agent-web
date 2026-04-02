@@ -3,10 +3,14 @@ import uuid
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query
 from pydantic import BaseModel
+from pydantic import BaseModel as PydanticBase
 from sqlmodel import select
 from backend.deps import SessionDep, CurrentUserDep
 from backend.models import Agent, AgentStatus
 import aiofiles
+from urllib.parse import urlparse, parse_qs
+import inspect
+import httpx
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
@@ -68,6 +72,59 @@ def list_agents(
     start = (page - 1) * page_size
     items = all_items[start: start + page_size]
     return AgentListResponse(items=[_to_response(a) for a in items], total=total)
+
+
+class ParseRequest(PydanticBase):
+    url: str
+
+
+class ParseResponse(PydanticBase):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    avatar_base64: Optional[str] = None
+    error: Optional[str] = None
+
+
+@router.post("/parse", response_model=ParseResponse)
+async def parse_agent_link(_user_id: CurrentUserDep, req: ParseRequest):
+    try:
+        parsed = urlparse(req.url)
+        params = parse_qs(parsed.query)
+        shared_id = params.get("shared_id", [None])[0]
+        from_type = params.get("from", [None])[0]
+        auth_token = params.get("auth", [None])[0]
+
+        if not shared_id or not from_type or not auth_token:
+            return ParseResponse(error="链接格式不正确，缺少必要参数")
+
+        base = f"{parsed.scheme}://{parsed.netloc}"
+        if from_type == "chat":
+            api_url = f"{base}/api/v1/chatbots/{shared_id}/info"
+        elif from_type == "agent":
+            api_url = f"{base}/api/v1/agentbots/{shared_id}/inputs"
+        else:
+            return ParseResponse(error=f"不支持的链接类型: {from_type}")
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(api_url, headers={"Authorization": f"Bearer {auth_token}"})
+            _json = resp.json()
+            result = await _json if inspect.iscoroutine(_json) else _json
+
+        if result.get("code") != 0 or not result.get("data"):
+            return ParseResponse(error="RAGflow 返回错误，请手动填写")
+
+        data = result["data"]
+        avatar_b64 = data.get("avatar", "") or ""
+        if avatar_b64 and not avatar_b64.startswith("data:"):
+            avatar_b64 = f"data:image/png;base64,{avatar_b64}"
+
+        return ParseResponse(
+            name=data.get("title"),
+            description=data.get("prologue"),
+            avatar_base64=avatar_b64 if avatar_b64 else None,
+        )
+    except Exception as e:
+        return ParseResponse(error="解析失败，请手动填写")
 
 
 @router.get("/{agent_id}", response_model=AgentResponse)

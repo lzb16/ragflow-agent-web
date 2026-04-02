@@ -1,3 +1,6 @@
+from unittest.mock import patch, AsyncMock
+
+
 def _register_and_login(client, username="user1", email="u1@test.com", password="pass123"):
     client.post("/api/auth/register", json={"username": username, "email": email, "password": password})
     resp = client.post("/api/auth/login", json={"email": email, "password": password})
@@ -49,3 +52,44 @@ def test_get_agent_detail(client):
     detail = client.get(f"/api/agents/{agent_id}")
     assert detail.status_code == 200
     assert detail.json()["name"] == "Detail Agent"
+
+
+def test_parse_requires_auth(client):
+    resp = client.post("/api/agents/parse", json={"url": "http://rag.local/next-chats/share?shared_id=abc&from=chat&auth=tok"})
+    assert resp.status_code == 403
+
+
+def test_parse_chat_link(client):
+    token = _register_and_login(client, "u3", "u3@test.com")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    mock_response = {"code": 0, "data": {"title": "My Chat", "prologue": "Hello!", "avatar": ""}}
+
+    with patch("backend.routers.agents.httpx.AsyncClient") as mock_client_cls:
+        mock_client = AsyncMock()
+        mock_client_cls.return_value.__aenter__.return_value = mock_client
+        mock_client.get.return_value.json.return_value = mock_response
+        mock_client.get.return_value.status_code = 200
+
+        resp = client.post(
+            "/api/agents/parse",
+            json={"url": "http://rag.local/next-chats/share?shared_id=abc123&from=chat&auth=token123"},
+            headers=headers,
+        )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["name"] == "My Chat"
+    assert data["description"] == "Hello!"
+
+
+def test_parse_invalid_url(client):
+    token = _register_and_login(client, "u4", "u4@test.com")
+    headers = {"Authorization": f"Bearer {token}"}
+    resp = client.post(
+        "/api/agents/parse",
+        json={"url": "not-a-valid-ragflow-url"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["error"] is not None
