@@ -112,3 +112,136 @@ def test_seed_admin_skips_when_user_exists(engine):
         user = session.exec(select(User).where(User.email == "seed@example.com")).first()
     assert user.username == "original"   # 未被覆盖
     assert user.is_admin is False        # 未被提升
+
+
+def _register_user(client, username, email, password="pass1234"):
+    resp = client.post("/api/auth/register", json={
+        "username": username, "email": email, "password": password
+    })
+    assert resp.status_code == 200
+    return resp.json()["id"]
+
+
+def test_admin_list_users(client, session):
+    """管理员可获取全部用户列表"""
+    from backend.models import User
+    from backend.auth import hash_password, create_token
+
+    # 创建管理员用户（is_admin=True）
+    admin_user = User(username="adm", email="adm@test.com",
+                      password_hash=hash_password("x"), is_admin=True)
+    session.add(admin_user)
+    session.commit()
+    session.refresh(admin_user)
+
+    token = create_token({"sub": str(admin_user.id), "is_admin": True})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 创建普通用户
+    _register_user(client, "alice", "alice@test.com")
+
+    resp = client.get("/api/admin/users", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "items" in data
+    assert len(data["items"]) >= 2
+    item = data["items"][0]
+    assert "id" in item
+    assert "username" in item
+    assert "email" in item
+    assert "is_admin" in item
+    assert "created_at" in item
+
+
+def test_non_admin_cannot_list_users(client):
+    """普通用户无法访问用户列表"""
+    from backend.auth import create_token
+    token = create_token({"sub": "1", "is_admin": False})
+    headers = {"Authorization": f"Bearer {token}"}
+    resp = client.get("/api/admin/users", headers=headers)
+    assert resp.status_code == 403
+
+
+def test_set_admin_promote(client, session):
+    """管理员可将普通用户提升为管理员"""
+    from backend.models import User
+    from backend.auth import hash_password, create_token
+
+    admin_user = User(username="adm2", email="adm2@test.com",
+                      password_hash=hash_password("x"), is_admin=True)
+    session.add(admin_user)
+    session.commit()
+    session.refresh(admin_user)
+
+    token = create_token({"sub": str(admin_user.id), "is_admin": True})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    target_id = _register_user(client, "bob", "bob@test.com")
+
+    resp = client.patch(f"/api/admin/users/{target_id}/set-admin",
+                        json={"is_admin": True}, headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["is_admin"] is True
+
+
+def test_set_admin_demote(client, session):
+    """管理员可撤销他人的管理员权限"""
+    from backend.models import User
+    from backend.auth import hash_password, create_token
+
+    admin_user = User(username="adm3", email="adm3@test.com",
+                      password_hash=hash_password("x"), is_admin=True)
+    other_admin = User(username="adm4", email="adm4@test.com",
+                       password_hash=hash_password("x"), is_admin=True)
+    session.add(admin_user)
+    session.add(other_admin)
+    session.commit()
+    session.refresh(admin_user)
+    session.refresh(other_admin)
+
+    token = create_token({"sub": str(admin_user.id), "is_admin": True})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = client.patch(f"/api/admin/users/{other_admin.id}/set-admin",
+                        json={"is_admin": False}, headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["is_admin"] is False
+
+
+def test_set_admin_cannot_change_self(client, session):
+    """管理员不能修改自己的管理员状态"""
+    from backend.models import User
+    from backend.auth import hash_password, create_token
+
+    admin_user = User(username="adm5", email="adm5@test.com",
+                      password_hash=hash_password("x"), is_admin=True)
+    session.add(admin_user)
+    session.commit()
+    session.refresh(admin_user)
+
+    token = create_token({"sub": str(admin_user.id), "is_admin": True})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = client.patch(f"/api/admin/users/{admin_user.id}/set-admin",
+                        json={"is_admin": False}, headers=headers)
+    assert resp.status_code == 400
+    assert "Cannot change your own admin status" in resp.json()["detail"]
+
+
+def test_set_admin_user_not_found(client, session):
+    """目标用户不存在时返回 404"""
+    from backend.models import User
+    from backend.auth import hash_password, create_token
+
+    admin_user = User(username="adm6", email="adm6@test.com",
+                      password_hash=hash_password("x"), is_admin=True)
+    session.add(admin_user)
+    session.commit()
+    session.refresh(admin_user)
+
+    token = create_token({"sub": str(admin_user.id), "is_admin": True})
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = client.patch("/api/admin/users/99999/set-admin",
+                        json={"is_admin": True}, headers=headers)
+    assert resp.status_code == 404
