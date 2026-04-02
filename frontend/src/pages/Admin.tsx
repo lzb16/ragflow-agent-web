@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Check, X, ArrowLeft } from 'lucide-react'
+import { Check, X, ArrowLeft, Trash2 } from 'lucide-react'
 import { api } from '../api'
 import type { Agent } from '../types'
 import Navbar from '../components/Navbar'
@@ -35,6 +35,12 @@ export default function Admin() {
     setAgents(prev => prev.map(a => a.id === id ? updated : a))
   }
 
+  async function handleDelete(id: number) {
+    if (!confirm('确定删除该智能体吗？此操作不可撤销。')) return
+    await api.adminDeleteAgent(id)
+    setAgents(prev => prev.filter(a => a.id !== id))
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
@@ -45,11 +51,17 @@ export default function Admin() {
             <h1 className="text-2xl font-bold text-slate-800 font-display">管理后台</h1>
             <p className="text-slate-500 text-sm mt-1">审核用户提交的智能体</p>
           </div>
-          <Link to="/"
-            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors">
-            <ArrowLeft size={14} />
-            返回首页
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link to="/admin/users"
+              className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+              用户管理
+            </Link>
+            <Link to="/"
+              className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors">
+              <ArrowLeft size={14} />
+              返回首页
+            </Link>
+          </div>
         </div>
 
         {/* Filter Tabs */}
@@ -124,6 +136,12 @@ export default function Admin() {
                       }
                     </span>
                   )}
+                  <button
+                    onClick={() => handleDelete(agent.id)}
+                    className="flex items-center gap-1.5 bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer">
+                    <Trash2 size={14} />
+                    删除
+                  </button>
                 </div>
               </div>
             ))}
