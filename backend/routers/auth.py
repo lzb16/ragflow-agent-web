@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, EmailStr, field_validator
 from sqlmodel import select
-from backend.deps import SessionDep
+from backend.deps import SessionDep, CurrentUserDep
 from backend.models import User
 from backend.auth import hash_password, verify_password, create_token
 
@@ -70,3 +70,27 @@ def login(req: LoginRequest, session: SessionDep):
 
     token = create_token({"sub": str(user.id), "is_admin": user.is_admin})
     return LoginResponse(token=token, is_admin=user.is_admin, user_id=user.id)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+    @field_validator('new_password')
+    @classmethod
+    def new_password_min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError('新密码至少 8 位')
+        return v
+
+
+@router.patch("/change-password", status_code=204)
+def change_password(req: ChangePasswordRequest, user_id: CurrentUserDep, session: SessionDep):
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    if not verify_password(req.current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="当前密码错误")
+    user.password_hash = hash_password(req.new_password)
+    session.add(user)
+    session.commit()
