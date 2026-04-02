@@ -63,7 +63,7 @@ def test_parse_chat_link(client):
     token = _register_and_login(client, "u3", "u3@test.com")
     headers = {"Authorization": f"Bearer {token}"}
 
-    mock_response = {"code": 0, "data": {"title": "My Chat", "prologue": "Hello!", "avatar": ""}}
+    mock_response = {"code": 0, "data": {"title": "My Chat", "description": "A helpful chat assistant.", "avatar": ""}}
 
     with patch("backend.routers.agents.httpx.AsyncClient") as mock_client_cls:
         mock_client = AsyncMock()
@@ -82,7 +82,34 @@ def test_parse_chat_link(client):
     assert resp.status_code == 200
     data = resp.json()
     assert data["name"] == "My Chat"
-    assert data["description"] == "Hello!"
+    assert data["description"] == "A helpful chat assistant."
+
+
+def test_parse_agent_link_no_description(client):
+    token = _register_and_login(client, "u3b", "u3b@test.com")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # agentbots/inputs 接口不含 description，回填应为 None
+    mock_response = {"code": 0, "data": {"title": "My Agent", "inputs": {}, "avatar": ""}}
+
+    with patch("backend.routers.agents.httpx.AsyncClient") as mock_client_cls:
+        mock_client = AsyncMock()
+        mock_client_cls.return_value.__aenter__.return_value = mock_client
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = mock_response
+        mock_resp.status_code = 200
+        mock_client.get.return_value = mock_resp
+
+        resp = client.post(
+            "/api/agents/parse",
+            json={"url": "http://rag.local/next-chats/share?shared_id=xyz789&from=agent&auth=token456"},
+            headers=headers,
+        )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["name"] == "My Agent"
+    assert data["description"] is None
 
 
 def test_parse_invalid_url(client):

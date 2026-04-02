@@ -115,9 +115,12 @@ async def parse_agent_link(_user_id: CurrentUserDep, req: ParseRequest):
         if avatar_b64 and not avatar_b64.startswith("data:"):
             avatar_b64 = f"data:image/png;base64,{avatar_b64}"
 
+        # agent 类型的 /agentbots/{id}/inputs 接口不含 description 字段，无法回填
+        description = data.get("description") if from_type == "chat" else None
+
         return ParseResponse(
-            name=data.get("title"),
-            description=data.get("prologue"),
+            name=data.get("title") or data.get("name"),
+            description=description,
             avatar_base64=avatar_b64 if avatar_b64 else None,
         )
     except Exception as e:
