@@ -12,10 +12,37 @@ from backend.routers import admin as admin_router
 app = FastAPI(title="RAGflow Agent Hub")
 
 
+def seed_admin():
+    """从环境变量引导首位管理员账号（若邮箱已存在则跳过）。"""
+    email = os.getenv("ADMIN_EMAIL")
+    password = os.getenv("ADMIN_PASSWORD")
+    if not email or not password:
+        return
+
+    from sqlmodel import Session, select
+    from backend import database
+    from backend.models import User
+    from backend.auth import hash_password
+
+    with Session(database.engine) as session:
+        existing = session.exec(select(User).where(User.email == email)).first()
+        if existing:
+            return
+        user = User(
+            username="admin",
+            email=email,
+            password_hash=hash_password(password),
+            is_admin=True,
+        )
+        session.add(user)
+        session.commit()
+
+
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
     os.makedirs("uploads/avatars", exist_ok=True)
+    seed_admin()
 
 
 app.include_router(auth_router.router)
