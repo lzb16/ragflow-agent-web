@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ShieldCheck, ShieldOff } from 'lucide-react'
+import { ArrowLeft, ShieldCheck, ShieldOff, ClipboardList, Users } from 'lucide-react'
 import { api } from '../api'
 import type { AdminUser } from '../types'
 import Navbar from '../components/Navbar'
@@ -34,15 +34,25 @@ export default function AdminUsers() {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 font-display">用户管理</h1>
-            <p className="text-slate-500 text-sm mt-1">管理团队成员的管理员权限</p>
-          </div>
-          <Link to="/admin"
+          <h1 className="text-2xl font-bold text-slate-800 font-display">管理后台</h1>
+          <Link to="/"
             className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors">
             <ArrowLeft size={14} />
-            返回管理后台
+            返回首页
           </Link>
+        </div>
+
+        {/* 顶级模块 Tab */}
+        <div className="flex gap-1.5 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+          <Link to="/admin"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">
+            <ClipboardList size={14} />
+            智能体审核
+          </Link>
+          <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-white text-slate-800 shadow-sm">
+            <Users size={14} />
+            用户管理
+          </button>
         </div>
 
         {loading ? (

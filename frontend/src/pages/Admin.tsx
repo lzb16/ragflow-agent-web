@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Check, X, ArrowLeft, Trash2 } from 'lucide-react'
+import { Check, X, ArrowLeft, Trash2, ClipboardList, Users } from 'lucide-react'
 import { api } from '../api'
 import type { Agent } from '../types'
 import Navbar from '../components/Navbar'
@@ -47,24 +47,28 @@ export default function Admin() {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 font-display">管理后台</h1>
-            <p className="text-slate-500 text-sm mt-1">审核用户提交的智能体</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link to="/admin/users"
-              className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 transition-colors">
-              用户管理
-            </Link>
-            <Link to="/"
-              className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors">
-              <ArrowLeft size={14} />
-              返回首页
-            </Link>
-          </div>
+          <h1 className="text-2xl font-bold text-slate-800 font-display">管理后台</h1>
+          <Link to="/"
+            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors">
+            <ArrowLeft size={14} />
+            返回首页
+          </Link>
         </div>
 
-        {/* Filter Tabs */}
+        {/* 顶级模块 Tab */}
+        <div className="flex gap-1.5 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
+          <button className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-white text-slate-800 shadow-sm">
+            <ClipboardList size={14} />
+            智能体审核
+          </button>
+          <Link to="/admin/users"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">
+            <Users size={14} />
+            用户管理
+          </Link>
+        </div>
+
+        {/* 审核状态筛选 */}
         <div className="flex gap-1.5 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
           {(Object.keys(filterLabels) as FilterStatus[]).map(s => (
             <button
