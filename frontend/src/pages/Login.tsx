@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { Bot } from 'lucide-react'
+import { Bot, Eye, EyeOff } from 'lucide-react'
 import { api } from '../api'
 
 export default function Login() {
-  const [email, setEmail] = useState('')
+  const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -17,7 +18,7 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      const data = await api.login(email, password)
+      const data = await api.login(login, password)
       localStorage.setItem('token', data.token)
       localStorage.setItem('is_admin', String(data.is_admin))
       localStorage.setItem('user_id', String(data.user_id))
@@ -33,7 +34,6 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        {/* Brand */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors">
             <Bot size={22} strokeWidth={1.8} />
@@ -54,26 +54,35 @@ export default function Login() {
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">邮箱</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">用户名或邮箱</label>
               <input
-                type="email"
+                type="text"
                 required
-                autoComplete="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                autoComplete="username"
+                placeholder="OA 用户名或邮箱"
+                value={login}
+                onChange={e => setLogin(e.target.value)}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">密码</label>
-              <input
-                type="password"
-                required
-                autoComplete="current-password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
             <button
               type="submit"
