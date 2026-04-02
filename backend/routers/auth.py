@@ -15,7 +15,7 @@ class RegisterRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    login: str
     password: str
 
 
@@ -55,9 +55,11 @@ def register(req: RegisterRequest, session: SessionDep):
 
 @router.post("/login", response_model=LoginResponse)
 def login(req: LoginRequest, session: SessionDep):
-    user = session.exec(select(User).where(User.email == req.email)).first()
+    user = session.exec(select(User).where(User.email == req.login)).first()
+    if not user:
+        user = session.exec(select(User).where(User.username == req.login)).first()
     if not user or not verify_password(req.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=401, detail="用户名/邮箱或密码错误")
 
     token = create_token({"sub": str(user.id), "is_admin": user.is_admin})
     return LoginResponse(token=token, is_admin=user.is_admin, user_id=user.id)
