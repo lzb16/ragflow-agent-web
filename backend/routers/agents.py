@@ -3,13 +3,11 @@ import uuid
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query
 from pydantic import BaseModel
-from pydantic import BaseModel as PydanticBase
 from sqlmodel import select
 from backend.deps import SessionDep, CurrentUserDep
 from backend.models import Agent, AgentStatus
 import aiofiles
 from urllib.parse import urlparse, parse_qs
-import inspect
 import httpx
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
@@ -74,11 +72,11 @@ def list_agents(
     return AgentListResponse(items=[_to_response(a) for a in items], total=total)
 
 
-class ParseRequest(PydanticBase):
+class ParseRequest(BaseModel):
     url: str
 
 
-class ParseResponse(PydanticBase):
+class ParseResponse(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     avatar_base64: Optional[str] = None
@@ -107,8 +105,7 @@ async def parse_agent_link(_user_id: CurrentUserDep, req: ParseRequest):
 
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get(api_url, headers={"Authorization": f"Bearer {auth_token}"})
-            _json = resp.json()
-            result = await _json if inspect.iscoroutine(_json) else _json
+            result = resp.json()
 
         if result.get("code") != 0 or not result.get("data"):
             return ParseResponse(error="RAGflow 返回错误，请手动填写")

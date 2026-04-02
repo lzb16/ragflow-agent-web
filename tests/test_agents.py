@@ -1,4 +1,4 @@
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 
 
 def _register_and_login(client, username="user1", email="u1@test.com", password="pass123"):
@@ -68,8 +68,10 @@ def test_parse_chat_link(client):
     with patch("backend.routers.agents.httpx.AsyncClient") as mock_client_cls:
         mock_client = AsyncMock()
         mock_client_cls.return_value.__aenter__.return_value = mock_client
-        mock_client.get.return_value.json.return_value = mock_response
-        mock_client.get.return_value.status_code = 200
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = mock_response
+        mock_resp.status_code = 200
+        mock_client.get.return_value = mock_resp
 
         resp = client.post(
             "/api/agents/parse",
