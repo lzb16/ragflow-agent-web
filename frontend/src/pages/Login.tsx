@@ -47,6 +47,16 @@ export default function Login() {
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-6">
+          {params.get('registered') && (
+            <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-5">
+              注册成功，请登录
+            </div>
+          )}
+          {params.get('changed') && (
+            <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm mb-5">
+              密码已更新，请重新登录
+            </div>
+          )}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3 text-sm mb-5">
               {error}

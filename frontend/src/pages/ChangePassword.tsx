@@ -44,7 +44,6 @@ export default function ChangePassword() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
@@ -62,7 +61,10 @@ export default function ChangePassword() {
     setLoading(true)
     try {
       await api.changePassword(currentPassword, newPassword)
-      setSuccess(true)
+      localStorage.removeItem('token')
+      localStorage.removeItem('is_admin')
+      localStorage.removeItem('user_id')
+      navigate('/login?changed=1')
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -84,52 +86,39 @@ export default function ChangePassword() {
           <h1 className="text-2xl font-bold text-slate-800 mb-6 font-display">修改密码</h1>
 
           <div className="bg-white border border-slate-200 rounded-xl p-6">
-            {success ? (
-              <div className="text-center py-4">
-                <p className="text-green-600 font-medium mb-4">密码修改成功！</p>
-                <button
-                  onClick={() => navigate('/')}
-                  className="text-blue-600 hover:underline text-sm cursor-pointer">
-                  返回首页
-                </button>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3 text-sm mb-5">
+                {error}
               </div>
-            ) : (
-              <>
-                {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3 text-sm mb-5">
-                    {error}
-                  </div>
-                )}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <PasswordInput
-                    label="当前密码"
-                    value={currentPassword}
-                    onChange={setCurrentPassword}
-                    autoComplete="current-password"
-                  />
-                  <PasswordInput
-                    label="新密码"
-                    value={newPassword}
-                    onChange={setNewPassword}
-                    autoComplete="new-password"
-                    placeholder="至少 8 位"
-                  />
-                  <PasswordInput
-                    label="确认新密码"
-                    value={confirmPassword}
-                    onChange={setConfirmPassword}
-                    autoComplete="new-password"
-                    placeholder="再次输入新密码"
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 font-medium text-sm transition-colors disabled:opacity-60 mt-1 cursor-pointer">
-                    {loading ? '保存中...' : '保存修改'}
-                  </button>
-                </form>
-              </>
             )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <PasswordInput
+                label="当前密码"
+                value={currentPassword}
+                onChange={setCurrentPassword}
+                autoComplete="current-password"
+              />
+              <PasswordInput
+                label="新密码"
+                value={newPassword}
+                onChange={setNewPassword}
+                autoComplete="new-password"
+                placeholder="至少 8 位"
+              />
+              <PasswordInput
+                label="确认新密码"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                autoComplete="new-password"
+                placeholder="再次输入新密码"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 font-medium text-sm transition-colors disabled:opacity-60 mt-1 cursor-pointer">
+                {loading ? '保存中...' : '保存修改'}
+              </button>
+            </form>
           </div>
         </div>
       </div>

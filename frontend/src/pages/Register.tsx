@@ -29,7 +29,7 @@ export default function Register() {
     setLoading(true)
     try {
       await api.register(username, email, password)
-      navigate('/login')
+      navigate('/login?registered=1')
     } catch (err: any) {
       setError(err.message)
     } finally {
