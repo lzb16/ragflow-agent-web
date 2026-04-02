@@ -9,7 +9,8 @@ export default function AdminUsers() {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<number | null>(null)
-  const currentUserId = Number(localStorage.getItem('user_id'))
+  const storedUserId = localStorage.getItem('user_id')
+  const currentUserId = storedUserId ? Number(storedUserId) : null
 
   useEffect(() => {
     api.adminListUsers()
