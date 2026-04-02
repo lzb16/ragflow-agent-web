@@ -245,3 +245,22 @@ def test_set_admin_user_not_found(client, session):
     resp = client.patch("/api/admin/users/99999/set-admin",
                         json={"is_admin": True}, headers=headers)
     assert resp.status_code == 404
+
+
+def test_delete_agent(client):
+    user_token = _make_user_token()
+    agent_id = _submit_agent(client, user_token)
+
+    admin_headers = {"Authorization": f"Bearer {_make_admin_token()}"}
+    resp = client.delete(f"/api/admin/agents/{agent_id}", headers=admin_headers)
+    assert resp.status_code == 204
+
+    # 确认已被删除
+    list_resp = client.get("/api/admin/agents", headers=admin_headers)
+    assert not any(a["id"] == agent_id for a in list_resp.json()["items"])
+
+
+def test_delete_agent_not_found(client):
+    admin_headers = {"Authorization": f"Bearer {_make_admin_token()}"}
+    resp = client.delete("/api/admin/agents/99999", headers=admin_headers)
+    assert resp.status_code == 404
