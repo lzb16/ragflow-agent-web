@@ -39,10 +39,16 @@ export const api = {
       body: JSON.stringify({ username, email, password }),
     }),
 
-  login: (email: string, password: string) =>
+  login: (login: string, password: string) =>
     request<{ token: string; is_admin: boolean; user_id: number }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ login, password }),
+    }),
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<void>('/api/auth/change-password', {
+      method: 'PATCH',
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
     }),
 
   listAgents: (q?: string, page = 1) => {
