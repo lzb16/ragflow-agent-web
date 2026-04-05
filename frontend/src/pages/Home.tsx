@@ -36,6 +36,12 @@ export default function Home() {
     setPage(1)
   }
 
+  function handleFavoriteToggle(agentId: number, favorited: boolean) {
+    setFavoritedIds(prev =>
+      favorited ? [...prev, agentId] : prev.filter(id => id !== agentId)
+    )
+  }
+
   const totalPages = Math.ceil(total / pageSize)
 
   return (
@@ -112,7 +118,7 @@ export default function Home() {
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {(showFavorites ? agents.filter(a => favoritedIds.includes(a.id)) : agents)
-                .map(agent => <AgentCard key={agent.id} agent={agent} favoritedIds={favoritedIds} />)}
+                .map(agent => <AgentCard key={agent.id} agent={agent} favoritedIds={favoritedIds} onFavoriteToggle={handleFavoriteToggle} />)}
             </div>
 
             {!showFavorites && totalPages > 1 && (

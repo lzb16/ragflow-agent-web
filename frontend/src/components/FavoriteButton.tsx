@@ -6,9 +6,10 @@ import { api } from '../api'
 interface Props {
   agentId: number
   initialFavorited: boolean
+  onToggle?: (agentId: number, favorited: boolean) => void
 }
 
-export default function FavoriteButton({ agentId, initialFavorited }: Props) {
+export default function FavoriteButton({ agentId, initialFavorited, onToggle }: Props) {
   const [favorited, setFavorited] = useState(initialFavorited)
   const [loading, setLoading] = useState(false)
   const [showTip, setShowTip] = useState(false)
@@ -37,6 +38,7 @@ export default function FavoriteButton({ agentId, initialFavorited }: Props) {
     try {
       const data = await api.toggleFavorite(agentId)
       setFavorited(data.favorited)
+      onToggle?.(agentId, data.favorited)
     } catch {
       setFavorited(prev)
       setError(true)

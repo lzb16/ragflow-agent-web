@@ -6,6 +6,7 @@ import FavoriteButton from './FavoriteButton'
 interface Props {
   agent: Agent
   favoritedIds?: number[]
+  onFavoriteToggle?: (agentId: number, favorited: boolean) => void
 }
 
 const TAG_STYLES = [
@@ -53,7 +54,7 @@ function getColorIndex(name: string) {
   return hash % TAG_STYLES.length
 }
 
-export default function AgentCard({ agent, favoritedIds = [] }: Props) {
+export default function AgentCard({ agent, favoritedIds = [], onFavoriteToggle }: Props) {
   const tags = agent.tags ? agent.tags.split(',').map(t => t.trim()).filter(Boolean) : []
   const idx = getColorIndex(agent.name)
   const tagStyle = TAG_STYLES[idx]
@@ -98,7 +99,7 @@ export default function AgentCard({ agent, favoritedIds = [] }: Props) {
             <ThumbsUp size={11} />
             <span>{agent.likes_count}</span>
           </div>
-          <FavoriteButton agentId={agent.id} initialFavorited={favoritedIds.includes(agent.id)} />
+          <FavoriteButton agentId={agent.id} initialFavorited={favoritedIds.includes(agent.id)} onToggle={onFavoriteToggle} />
         </div>
       </div>
 
