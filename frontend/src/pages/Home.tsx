@@ -43,6 +43,7 @@ export default function Home() {
   }
 
   const totalPages = Math.ceil(total / pageSize)
+  const displayedAgents = showFavorites ? agents.filter(a => favoritedIds.includes(a.id)) : agents
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -92,7 +93,7 @@ export default function Home() {
         )}
         {loading ? (
           <div className="text-center py-20 text-slate-400 text-sm">加载中...</div>
-        ) : agents.length === 0 ? (
+        ) : displayedAgents.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-slate-400 text-sm">
               {showFavorites
@@ -101,7 +102,7 @@ export default function Home() {
                     ? `没有找到与"${query}"相关的智能体`
                     : '还没有智能体，快来分享第一个吧！'}
             </p>
-            {!query && (
+            {!showFavorites && !query && (
               <Link to="/submit"
                 className="mt-4 inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 text-sm font-medium">
                 分享第一个智能体 →
@@ -117,8 +118,7 @@ export default function Home() {
               </p>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {(showFavorites ? agents.filter(a => favoritedIds.includes(a.id)) : agents)
-                .map(agent => <AgentCard key={agent.id} agent={agent} favoritedIds={favoritedIds} onFavoriteToggle={handleFavoriteToggle} />)}
+              {displayedAgents.map(agent => <AgentCard key={agent.id} agent={agent} favoritedIds={favoritedIds} onFavoriteToggle={handleFavoriteToggle} />)}
             </div>
 
             {!showFavorites && totalPages > 1 && (
