@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom'
 import { ThumbsUp } from 'lucide-react'
 import type { Agent } from '../types'
+import FavoriteButton from './FavoriteButton'
 
 interface Props {
   agent: Agent
+  favoritedIds?: number[]
+  onFavoriteToggle?: (agentId: number, favorited: boolean) => void
 }
 
 const TAG_STYLES = [
@@ -51,7 +54,7 @@ function getColorIndex(name: string) {
   return hash % TAG_STYLES.length
 }
 
-export default function AgentCard({ agent }: Props) {
+export default function AgentCard({ agent, favoritedIds = [], onFavoriteToggle }: Props) {
   const tags = agent.tags ? agent.tags.split(',').map(t => t.trim()).filter(Boolean) : []
   const idx = getColorIndex(agent.name)
   const tagStyle = TAG_STYLES[idx]
@@ -90,10 +93,13 @@ export default function AgentCard({ agent }: Props) {
             </div>
           )}
         </div>
-        {/* 点赞数 */}
-        <div className="absolute top-3 right-3 flex items-center gap-1 text-slate-500 text-xs">
-          <ThumbsUp size={11} />
-          <span>{agent.likes_count}</span>
+        {/* 点赞数 + 收藏 */}
+        <div className="absolute top-2 right-2 flex items-center gap-1.5">
+          <div className="flex items-center gap-1 text-slate-500 text-xs bg-white/70 backdrop-blur-sm rounded-md px-1.5 py-0.5">
+            <ThumbsUp size={11} />
+            <span>{agent.likes_count}</span>
+          </div>
+          <FavoriteButton agentId={agent.id} initialFavorited={favoritedIds.includes(agent.id)} onToggle={onFavoriteToggle} />
         </div>
       </div>
 

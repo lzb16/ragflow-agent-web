@@ -77,6 +77,14 @@ export const api = {
       method: 'POST',
     }),
 
+  toggleFavorite: (agentId: number) =>
+    request<{ favorited: boolean }>(`/api/favorites/${agentId}`, {
+      method: 'POST',
+    }),
+
+  listMyFavorites: () =>
+    request<number[]>('/api/favorites/me'),
+
   listComments: (agentId: number) =>
     request<import('./types').Comment[]>(`/api/agents/${agentId}/comments`),
 

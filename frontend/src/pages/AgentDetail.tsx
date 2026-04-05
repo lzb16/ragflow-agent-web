@@ -4,6 +4,7 @@ import { ArrowLeft, ExternalLink, BookOpen } from 'lucide-react'
 import { api } from '../api'
 import type { Agent, Comment } from '../types'
 import LikeButton from '../components/LikeButton'
+import FavoriteButton from '../components/FavoriteButton'
 import CommentList from '../components/CommentList'
 import CommentForm from '../components/CommentForm'
 import Navbar from '../components/Navbar'
@@ -14,6 +15,7 @@ export default function AgentDetail() {
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [favorited, setFavorited] = useState(false)
 
   const currentUserId = localStorage.getItem('user_id') ? Number(localStorage.getItem('user_id')) : null
   const isAdmin = localStorage.getItem('is_admin') === 'true'
@@ -25,6 +27,12 @@ export default function AgentDetail() {
       .then(([a, c]) => { setAgent(a); setComments(c) })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
+    const token = localStorage.getItem('token')
+    if (token) {
+      api.listMyFavorites()
+        .then(ids => setFavorited(ids.includes(agentId)))
+        .catch(() => {})
+    }
   }, [id])
 
   if (loading) return (
@@ -101,6 +109,7 @@ export default function AgentDetail() {
 
           <div className="flex items-center gap-3 pt-1">
             <LikeButton agentId={agent.id} initialCount={agent.likes_count} />
+            <FavoriteButton agentId={agent.id} initialFavorited={favorited} />
             <a href={agent.url} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">
               去使用

@@ -47,3 +47,12 @@ class Like(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     agent_id: int = Field(foreign_key="agent.id")
     user_id: int = Field(foreign_key="user.id")
+
+
+class Favorite(SQLModel, table=True):
+    __table_args__ = (UniqueConstraint("agent_id", "user_id"),)
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    agent_id: int = Field(foreign_key="agent.id", index=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
