@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlmodel import select
 from backend.deps import SessionDep, CurrentUserDep
-from backend.models import Agent, Favorite
+from backend.models import Agent, AgentStatus, Favorite
 
 router = APIRouter(tags=["favorites"])
 
@@ -14,7 +14,7 @@ class FavoriteResponse(BaseModel):
 @router.post("/api/favorites/{agent_id}", response_model=FavoriteResponse)
 def toggle_favorite(agent_id: int, session: SessionDep, user_id: CurrentUserDep):
     agent = session.get(Agent, agent_id)
-    if not agent:
+    if not agent or agent.status != AgentStatus.approved:
         raise HTTPException(status_code=404, detail="Agent not found")
 
     existing = session.exec(

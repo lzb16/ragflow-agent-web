@@ -12,6 +12,7 @@ export default function FavoriteButton({ agentId, initialFavorited }: Props) {
   const [favorited, setFavorited] = useState(initialFavorited)
   const [loading, setLoading] = useState(false)
   const [showTip, setShowTip] = useState(false)
+  const [error, setError] = useState(false)
   const tipTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const token = localStorage.getItem('token')
 
@@ -38,6 +39,9 @@ export default function FavoriteButton({ agentId, initialFavorited }: Props) {
       setFavorited(data.favorited)
     } catch {
       setFavorited(prev)
+      setError(true)
+      if (tipTimer.current) clearTimeout(tipTimer.current)
+      tipTimer.current = setTimeout(() => setError(false), 3000)
     } finally {
       setLoading(false)
     }
@@ -56,6 +60,13 @@ export default function FavoriteButton({ agentId, initialFavorited }: Props) {
         }`}>
         <Star size={15} fill={favorited ? 'currentColor' : 'none'} strokeWidth={favorited ? 2 : 1.5} />
       </button>
+
+      {error && (
+        <div className="absolute bottom-full left-0 mb-2 whitespace-nowrap bg-red-600 text-white text-xs rounded-lg px-3 py-2 shadow-lg z-10">
+          操作失败，请重试
+          <div className="absolute top-full left-4 border-4 border-transparent border-t-red-600" />
+        </div>
+      )}
 
       {showTip && (
         <div className="absolute bottom-full left-0 mb-2 whitespace-nowrap bg-slate-800 text-white text-xs rounded-lg px-3 py-2 flex items-center gap-2 shadow-lg z-10">
