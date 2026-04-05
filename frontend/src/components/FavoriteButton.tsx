@@ -18,6 +18,10 @@ export default function FavoriteButton({ agentId, initialFavorited, onToggle }: 
   const token = localStorage.getItem('token')
 
   useEffect(() => {
+    setFavorited(initialFavorited)
+  }, [initialFavorited])
+
+  useEffect(() => {
     return () => { if (tipTimer.current) clearTimeout(tipTimer.current) }
   }, [])
 
