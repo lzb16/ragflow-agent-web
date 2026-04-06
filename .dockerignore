@@ -8,6 +8,7 @@ ENV/
 .pytest_cache/
 
 # Node
+frontend/node_modules
 frontend/node_modules/
 
 # 开发产物（Docker 内重新构建）

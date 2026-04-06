@@ -3,11 +3,11 @@ FROM node:20-alpine AS frontend-builder
 
 WORKDIR /build/frontend
 
-COPY frontend/package.json frontend/package-lock.json* ./
+COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
 COPY frontend/ ./
-RUN npm run build
+RUN npx tsc -b && npx vite build
 
 
 # ---- Stage 2: 运行后端（含前端静态文件）----
