@@ -59,7 +59,6 @@ export default function AgentCard({ agent, favoritedIds = [], onFavoriteToggle }
   const idx = getColorIndex(agent.name)
   const tagStyle = TAG_STYLES[idx]
   const bannerBg = BANNER_BG_STYLES[idx]
-  const bannerText = BANNER_TEXT_STYLES[idx]
   const avatarBg = AVATAR_BG_STYLES[idx]
 
   return (
