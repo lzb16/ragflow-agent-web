@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+env/
+ENV/
+.pytest_cache/
+
+# Node
+frontend/node_modules/
+
+# 开发产物（Docker 内重新构建）
+frontend/dist/
+
+# 数据文件（通过 volume 持久化）
+data.db
+data/
+uploads/
+
+# 环境变量（通过 env_file 传入）
+.env
+.env.local
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# 文档 / 测试
+docs/
+tests/
+*.md
