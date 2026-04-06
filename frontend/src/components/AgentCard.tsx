@@ -38,15 +38,6 @@ const AVATAR_BG_STYLES = [
   'bg-pink-100',
 ]
 
-// 无头像时横幅大字母的颜色
-const BANNER_TEXT_STYLES = [
-  'text-blue-200',
-  'text-violet-200',
-  'text-emerald-200',
-  'text-orange-200',
-  'text-cyan-200',
-  'text-pink-200',
-]
 
 function getColorIndex(name: string) {
   let hash = 0
