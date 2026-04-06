@@ -1,42 +1,41 @@
-# RAGFlow Agent Web
+# RAGFlow Agent Hub
 
-RAGFlow Agent Web 是一个基于 [RAGFlow](https://github.com/infiniflow/ragflow) 的轻量级 Web 客户端，提供对话式 AI 助手交互界面。
+RAGFlow Agent Hub 是一个 AI Agent 展示与社区互动平台，用户可以浏览、点赞、收藏和评论各类 AI Agent。
 
 ## 功能特性
 
-- 对话交互：支持流式响应的实时聊天
-- 多助手支持：可配置 Chat 和 Agent 两种类型的助手
-- 对话历史：自动保存和管理聊天记录
-- 收藏功能：收藏常用助手，快速访问
-- 头像上传：自定义助手头像
-- Markdown 渲染：支持代码高亮和 GFM 格式
+- 用户注册/登录（JWT 认证）
+- Agent 展示：浏览 Agent 列表与详情
+- 社区互动：点赞、收藏、评论
+- 管理后台：管理员可创建/编辑/删除 Agent，自定义头像上传
+- 响应式前端，支持移动端
 
 ## 技术栈
 
-**后端：** Python + FastAPI + SQLite (aiosqlite)  
-**前端：** React 18 + TypeScript + Vite + Tailwind CSS  
-**部署：** Docker
+| 层| 技术 |
+|---|------|
+| 后端 | Python · FastAPI · SQLModel · SQLite|
+| 前端 | React 19 · TypeScript · Vite · Tailwind CSS 4|
+| 部署 | Docker（多阶段构建） |
 
 ## 快速开始
 
-### 环境准备
-
-1. 复制环境变量配置：
+###1. 配置环境变量
 
 ```bash
 cp .env.example .env
 ```
 
-2. 编辑 `.env` 填入你的 RAGFlow 服务信息：
+编辑 `.env`：
 
 ```env
-RAGFLOW_API_URL=http://your-ragflow-server/api
-RAGFLOW_API_KEY=your-api-key-here
-RAGFLOW_CHAT_ASSISTANT_ID=your-assistant-id
-RAGFLOW_AGENT_ASSISTANT_ID=your-agent-id
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=your-password
+SECRET_KEY=your-jwt-secret
+DATABASE_URL=sqlite:///./data.db
 ```
 
-### Docker 部署（推荐）
+### 2. Docker 部署（推荐）
 
 ```bash
 docker compose up -d
@@ -44,18 +43,14 @@ docker compose up -d
 
 访问 http://localhost:8000
 
-### 本地开发
-
-后端：
+### 3. 本地开发
 
 ```bash
+# 后端
 pip install -r requirements.txt
 uvicorn backend.main:app --reload
-```
 
-前端：
-
-```bash
+# 前端
 cd frontend
 npm install
 npm run dev
@@ -65,14 +60,18 @@ npm run dev
 
 ```
 ├── backend/
-│   ├── api/            # API 路由（assistants, chat, favorites, upload）
-│   ├── config.py       # 配置管理
+│   ├── routers/        # API 路由（agents,auth, likes, favorites, comments, admin）
+│   ├── auth.py         #认证工具
+│   ├── config.py       # 配置
 │   ├── database.py     # 数据库初始化
-│   ├── main.py         # FastAPI 应用入口
-│   └── models.py       # 数据模型
-├── frontend/
-│   └── src/            # React 前端源码
-├── Dockerfile
+│   ├── deps.py         # 依赖注入
+│   ├── main.py         # FastAPI 入口
+│   └── models.py       # 数据模型（User, Agent, Like, Favorite,Comment）
+├── frontend/src/
+│   ├── pages/          # 页面组件
+│   ├── components/     # 通用组件
+│   └── api.ts          # API 客户端
+├──Dockerfile          # 多阶段构建
 ├── docker-compose.yml
 └── requirements.txt
 ```
